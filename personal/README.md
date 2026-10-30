@@ -44,3 +44,14 @@ tcping 单独从 fw876/helloworld 提交 `1f0849ec0668e59865c30ab7d89bb2139c270d
 
 不会自动合并作者滚动 master，避免未经检查的内核/驱动更新混入已选基线。
 升级保留设置时，99-personal-patch 会重新应用上述策略；已有无线、PPPoE 等个人设置不写入源码。
+
+## 产物复核与检查脚本
+
+作者原工作流使用递归 `find ... -path '*/linux-*/.config'`，该模式会匹配构建目录中
+backports 等其他组件的 `.config`。现在仅接受 Linux 源码目录根部的唯一配置，并将其保存为
+`kernel.config`，防止用其他组件配置误判 NPU 缺失。附带回归检查覆盖多个 `.config` 的情况。
+
+`verify-image.py` 直接检查两个 ITB 的 SHA-256、FIT 内部散列、内核内置 NPU 驱动符号，
+解包根文件系统核对 OpenClash、Mihomo、全锥形修正、无线、LED 和个人首次启动策略。
+完整构建结束后自动运行这些检查。已有编译产物也可在同一个工作流中填写 `verify_run_id`
+重新下载复核，不重复编译；留空则完整构建。复核保留原镜像版本与散列，不改包或重打镜像。
