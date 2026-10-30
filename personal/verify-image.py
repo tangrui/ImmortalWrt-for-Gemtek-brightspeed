@@ -58,6 +58,41 @@ def fit_images(blob):
         yield props, data
 
 
+def module_metadata(path):
+    blob = path.read_bytes()
+    assert blob[:6] == b'\x7fELF\x02\x01', f'Expected AArch64 ELF module: {path}'
+    assert struct.unpack_from('<H', blob, 18)[0] == 183, 'Wrong module architecture'
+    table = struct.unpack_from('<Q', blob, 40)[0]
+    entry, count, names_idx = struct.unpack_from('<HHH', blob, 58)
+    name_header = table + names_idx * entry
+    name_offset, name_size = struct.unpack_from('<QQ', blob, name_header + 24)
+    names = blob[name_offset:name_offset + name_size]
+    values = {}
+    for i in range(count):
+        header = table + i * entry
+        name_pos = struct.unpack_from('<I', blob, header)[0]
+        name = names[name_pos:names.find(b'\0', name_pos)].decode()
+        offset, size = struct.unpack_from('<QQ', blob, header + 24)
+        if name == '.gnu.linkonce.this_module':
+            values['module_struct_size'] = size
+        if name == '.modinfo':
+            for field in blob[offset:offset + size].split(b'\0'):
+                if field.startswith(b'vermagic='):
+                    values['vermagic'] = field.split(b'=', 1)[1].decode()
+    assert values.get('module_struct_size') and values.get('vermagic'), f'Missing ABI metadata: {path}'
+    return values
+
+
+def verify_button_module(root):
+    modules = root / 'lib/modules'
+    buttons = list(modules.rglob('gpio-button-hotplug.ko'))
+    references = list(modules.rglob('mt7996e.ko'))
+    assert len(buttons) == len(references) == 1, 'Expected GPIO and MT7996 modules'
+    button, reference = module_metadata(buttons[0]), module_metadata(references[0])
+    assert button == reference, f'GPIO module ABI differs from WiFi driver: {button} vs {reference}'
+    print(f'GPIO MODULE ABI VERIFIED: {button}', flush=True)
+
+
 def verify_rootfs(data):
     with tempfile.TemporaryDirectory(prefix='verify-xr1710g-') as tmp:
         image, root = Path(tmp) / 'root.squashfs', Path(tmp) / 'root'
@@ -67,8 +102,16 @@ def verify_rootfs(data):
                         'etc', 'usr/lib/lua/luci/controller/openclash.lua', 'usr/share/ucode/fw4.uc',
                         'lib/functions/personal-upgrade.sh', 'lib/preinit/80_mount_root',
                         'lib/preinit/81_personal_config_state', 'bin/config_generate',
-                        'lib/wifi/mac80211.uc', 'lib/upgrade/keep.d/personal-firmware', 'sbin/sysupgrade'],
+                        'lib/wifi/mac80211.uc', 'lib/upgrade/keep.d/personal-firmware', 'sbin/sysupgrade',
+                        'lib/modules', 'usr/sbin/tailscale', 'usr/sbin/tailscaled'],
                        check=True, stdout=subprocess.DEVNULL)
+        verify_button_module(root)
+        assert (root / 'usr/sbin/tailscaled').is_file(), 'Tailscale daemon missing'
+        assert (root / 'usr/sbin/tailscale').is_file(), 'Tailscale CLI missing'
+        tsconf = (root / 'etc/config/tailscale').read_text()
+        assert '/etc/tailscale/tailscaled.state' in tsconf
+        assert 'nftables' in tsconf
+        assert not list((root / 'etc/tailscale').glob('*.state')), 'Tailscale identity embedded in firmware'
         core = root / 'etc/openclash/core/clash_meta'
         assert hashlib.sha256(core.read_bytes()).hexdigest() == CORE_SHA256, 'Unexpected Mihomo core'
         assert core.stat().st_mode & 0o111, 'Core is not executable'
@@ -120,6 +163,7 @@ def main():
     subprocess.run([sys.executable, 'personal/check-packages.py', str(config[0])], check=True)
     subprocess.run([sys.executable, 'personal/check-packages.py', str(manifest[0])], check=True)
     assert re.search(r'^luci-app-openclash\s+-\s+0\.48\.002(?:\b|[-~])', manifest[0].read_text(), re.M)
+    assert re.search(r'^tailscale\s+-\s+1\.104\.1(?:\b|[-~])', manifest[0].read_text(), re.M)
     subprocess.run(['bash', 'scripts/check-gemtek-profile-isolation.sh', '--config', str(config[0]),
                     '--manifest', str(manifest[0])], check=True)
     images = list(directory.rglob('*.itb'))

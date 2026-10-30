@@ -13,6 +13,7 @@ usteer、mesh-conf、airoha-recovery、IPTV 服务及 xray-core。
 tcping 单独从 fw876/helloworld 提交 `1f0849ec0668e59865c30ab7d89bb2139c270d00`
 引入源码到 `package/personal/tcping`，不启用该 feed；保留现有 PPPoE 发现工具。
 保留无线驱动、Mesh 认证组件、硬件管理、定时重启、无线历史和扫描工具。
+移除原生 WireGuard 的 kmod-wireguard、wireguard-tools、luci-proto-wireguard、rpcd-mod-wireguard，保留 TUN 支持。
 已排除 Watchcat、UPnP 应用、语言包、miniupnpd 后端和相关独立客户端库。
 它们没有独立 feed，来自共享 packages/luci；共享源保留，app_airoha 二进制源通过构建配置直接注释。
 修正隐藏板级配置包在多机型构建下变为 m 的默认值，确保其为 y。
@@ -75,3 +76,21 @@ backports 等其他组件的 `.config`。现在仅接受 Linux 源码目录根�
 构建后 `test-upgrade.py` 使用镜像内真实 ARM64 UCI、ucode，在隔离根目录模拟：
 全新初始化、从作者固件保留升级、新增应用、空计划、孤立 include、普通重启、重复迁移、恢复失败和提交失败后重试。
 这些测试不访问路由器，不代替真实设备刷机与硬件验证。兼容的 sysupgrade 保留设置才能恢复配置；不保留设置和恢复出厂会重新使用默认值。
+
+## Tailscale
+
+预装固定 packages feed 中的 Tailscale `1.104.1`，同一个包提供 `tailscale` 和 `tailscaled`。
+不依赖原生 WireGuard 软件包，使用自身 WireGuard 用户态实现；`kmod-tun`、CA 证书和 nftables 基础保留。
+遵循该包的原生启动方式：守护进程随系统启动，出厂未登录，没有预置授权密钥、节点身份、出口节点或子网公告。
+刷机后通过 SSH 执行 `tailscale up` 并完成账号授权；路由、DNS、子网公告等由用户后续选择，不自动替用户设置。
+
+显式保留 `/etc/config/tailscale` 和 `/etc/tailscale/`，含机器身份、登录状态和路由偏好所在状态文件。
+默认 state_file 为 `/etc/tailscale/tailscaled.state`；若自行改到目录以外，应将自定义路径加入备份。
+升级回归覆盖 Tailscale 的自定义端口、状态文件路径、未知配置字段及模拟设备身份的保留；不接入真实 tailnet。
+
+## Reset 验证
+
+见 [安全验证步骤](RESET_BUTTON_TEST.md)。当前原作者版本的 GPIO 模块与 MT7996 模块虽然 vermagic 相同，
+但 `.gnu.linkonce.this_module` 分别为 704 与 1216 字节；离线检查会拒绝这份已知不一致镜像。
+此前干净构建 `d9fcac54` 的二者均为 1216 字节。本次和后续构建继续校验模块一致性。
+这不能替代刷机后的驱动实际加载和按下/松开事件测试；没有更改 Reset 的正常重启/恢复出厂行为。

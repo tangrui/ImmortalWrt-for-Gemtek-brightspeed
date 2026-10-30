@@ -13,6 +13,7 @@ etherwake
 geoview
 igmpproxy
 ipt2socks
+kmod-wireguard
 libminiupnpc
 libnatpmp
 luci-app-airoha-recovery
@@ -54,6 +55,7 @@ luci-i18n-wechatpush-zh-cn
 luci-i18n-wifischedule-zh-cn
 luci-i18n-wol-zh-cn
 luci-i18n-zerotier-zh-cn
+luci-proto-wireguard
 luci-theme-argon
 luci-theme-glass
 lucky
@@ -64,6 +66,7 @@ miniupnpd-iptables
 miniupnpd-nftables
 msd_lite
 natpmpc
+rpcd-mod-wireguard
 rtp2httpd
 simple-obfs-client
 smartdns
@@ -74,5 +77,6 @@ usteer
 vlmcsd
 watchcat
 wifischedule
+wireguard-tools
 xray-core
 zerotier

@@ -1,3 +1,9 @@
+# Personal patch: Tailscale and button module checks — 2026-10-30
+
+- 移除原生 WireGuard 的内核模块、工具、LuCI 协议与 RPC 配套，预装 Tailscale 1.104.1。
+- 保留 TUN，明确保留 Tailscale 配置和设备身份，回归测试覆盖身份文件和用户设置。
+- 对 GPIO 与 MT7996 模块增加 vermagic 和模块结构大小一致性检查，提供不会直接触发重启/清空的按键验证步骤。
+
 # Personal patch: preserve configured upgrades — 2026-10-30
 
 - 保留设置升级时尊重已有无线、IPv6、主题、流量卸载、调频、计划任务和 OpenClash 配置。

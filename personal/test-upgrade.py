@@ -66,7 +66,8 @@ def snapshot(root):
     paths = [p for p in (root / 'etc/config').glob('*') if p.is_file()]
     paths += [root / 'etc/crontabs/root', root / 'etc/dnsmasq.conf', root / 'etc/apk/repositories.d/customfeeds.list',
               root / 'etc/openclash/config/user.yaml', root / 'etc/openclash/custom/user.list',
-              root / 'etc/openclash/rule_provider/user.yaml', root / 'etc/dropbear/authorized_keys']
+              root / 'etc/openclash/rule_provider/user.yaml', root / 'etc/dropbear/authorized_keys',
+              root / 'etc/tailscale/user-node.state']
     result = {}
     for p in paths:
         if not p.is_file():
@@ -138,8 +139,10 @@ def main():
             for name in ['03_wireless', '11-xr1710g-cpufreq-defaults', '18-xr1710g-firewall-defaults',
                          '22_airoha-network-migrate-v4', '98-watchcat-defaults']:
                 (base / 'etc/uci-defaults' / name).unlink(missing_ok=True)
+            write(base, '/etc/config/tailscale', "config settings 'settings'\n option log_stderr '1'\n option log_stdout '1'\n option port '41641'\n option state_file '/etc/tailscale/tailscaled.state'\n option fw_mode 'nftables'\n")
             p = base / 'etc/config/luci'
             p.write_text(p.read_text().replace("'/luci-static/bootstrap'", "'/luci-static/bootstrap-dark'"))
+        assert not list((base / 'etc/tailscale').glob('*.state')), 'Identity must not be embedded in firmware'
         new_core = (base / 'etc/openclash/core/clash_meta').read_bytes()
         rom = base / 'rom/etc/openclash/core'
         rom.mkdir(parents=True, exist_ok=True)
@@ -157,8 +160,12 @@ def main():
             print(f'TESTING UPGRADE CONTRACT: {case}', flush=True)
             board_fixture(root)
             if case == 'factory':
+                if not overlay:
+                    assert '1.104.1' in run(root, '/usr/sbin/tailscale version').stdout
                 for pkg in ['network', 'system', 'dhcp', 'wireless']:
                     (root / 'etc/config' / pkg).unlink(missing_ok=True)
+                assert run(root, 'uci get tailscale.settings.state_file').stdout.strip() == '/etc/tailscale/tailscaled.state'
+                assert run(root, 'uci get tailscale.settings.fw_mode').stdout.strip() == 'nftables'
                 assert capture(root) == 'factory'
                 generate(root)
                 assert run(root, 'uci get network.wan6.auto').stdout.strip() == '0'
@@ -184,6 +191,8 @@ def main():
                 write(root, '/etc/config/wireless', wireless)
                 write(root, '/etc/config/luci', "config core 'main'\n option mediaurlbase '/luci-static/my-theme'\n option lang 'en'\n")
                 write(root, '/etc/config/openclash', "config openclash 'config'\n option enable '1'\n option dashboard_password 'fixture-password'\n option config_path '/etc/openclash/config/user.yaml'\n option core_version 'linux-arm64'\n option disable_quic_go_gso '0'\n option default_resolvfile '/tmp/user-dns'\n")
+                write(root, '/etc/config/tailscale', "config settings 'settings'\n option port '41642'\n option state_file '/etc/tailscale/user-node.state'\n option fw_mode 'nftables'\n option log_stdout '0'\n option log_stderr '0'\n option future_option 'preserve-me'\n")
+                write(root, '/etc/tailscale/user-node.state', '{"fixture_node_identity":"not-a-real-key","advertise_routes":["192.168.50.0/24"]}\n')
                 write(root, '/etc/config/uhttpd', "config uhttpd 'main'\n option script_timeout '180'\n option max_requests '8'\n")
                 write(root, '/etc/config/cpufreq', "config settings 'cpufreq'\n option governor0 'schedutil'\n option maxfreq0 '1300000'\nconfig settings 'global'\n option set '0'\n")
                 write(root, '/etc/config/firewall', "config defaults\n option fullcone '1'\n option flow_offloading '0'\n option flow_offloading_hw '0'\nconfig include 'user_rule'\n option path '/etc/user-rule.sh'\n")
@@ -249,7 +258,7 @@ def main():
                             assert run(root, 'uci get openclash.config.core_version').stdout.strip() == 'linux-arm64'
                         if case == 'preserve':
                             backup = run(root, '/sbin/sysupgrade -l').stdout.splitlines()
-                            for name in ['/etc/config/network', '/etc/config/wireless', '/etc/config/dhcp', '/etc/config/firewall', '/etc/config/cpufreq', '/etc/config/uhttpd', '/etc/dropbear/authorized_keys', '/etc/personal-firmware/migrations/001-orphan-includes', '/etc/config/openclash', '/etc/openclash/config/user.yaml', '/etc/openclash/custom/user.list', '/etc/openclash/rule_provider/user.yaml', '/etc/crontabs/root', '/etc/apk/repositories.d/customfeeds.list']:
+                            for name in ['/etc/config/tailscale', '/etc/tailscale/user-node.state', '/etc/config/network', '/etc/config/wireless', '/etc/config/dhcp', '/etc/config/firewall', '/etc/config/cpufreq', '/etc/config/uhttpd', '/etc/dropbear/authorized_keys', '/etc/personal-firmware/migrations/001-orphan-includes', '/etc/config/openclash', '/etc/openclash/config/user.yaml', '/etc/openclash/custom/user.list', '/etc/openclash/rule_provider/user.yaml', '/etc/crontabs/root', '/etc/apk/repositories.d/customfeeds.list']:
                                 assert name in backup, f'User data missing from backup: {name}'
                             assert not any(name.startswith('/etc/openclash/core/') for name in backup)
                             assert '/etc/apk/repositories.d/distfeeds.list' not in backup

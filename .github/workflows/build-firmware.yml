@@ -161,7 +161,7 @@ jobs:
             --config .config \
             --kernel-config "$kernel_config" \
             --manifest "$manifest"
-          python3 personal/verify-image.py bin/targets/airoha/an7581 .config
+          python3 personal/verify-image.py bin/targets/airoha/an7581 .config | tee image-verification.txt
           image=$(find bin/targets/airoha/an7581 -name "*-gemtek_xr1710g-squashfs-sysupgrade.itb" -print -quit)
           sudo python3 personal/test-upgrade.py "$image" | tee upgrade-tests.txt
 
@@ -190,6 +190,7 @@ jobs:
             configure.log
             kernel.config
             upgrade-tests.txt
+            image-verification.txt
             build-verbose.log
             bin/targets/airoha/an7581/*.itb
             bin/targets/airoha/an7581/*manifest

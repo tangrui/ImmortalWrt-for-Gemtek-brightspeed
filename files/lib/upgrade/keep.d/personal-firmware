@@ -3,3 +3,5 @@
 /etc/openclash/
 /etc/crontabs/
 /etc/apk/repositories.d/customfeeds.list
+/etc/config/tailscale
+/etc/tailscale/
