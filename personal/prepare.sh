@@ -13,5 +13,4 @@ curl --fail --location --retry 3 -o /tmp/mihomo.gz https://github.com/MetaCubeX/
 echo 'ba408b317080ee265c46cb923a50018c1b82cbd708551cdd46a1e3e307396187  /tmp/mihomo.gz' | sha256sum -c -
 gzip -dc /tmp/mihomo.gz > files/etc/openclash/core/clash_meta
 chmod 755 files/etc/openclash/core/clash_meta
-# Source feeds needed for build are not necessarily usable binary repositories.
-# Prevent custom feed indexes from being published into the runtime config.
+python3 personal/patch-openclash-init.py package/personal/luci-app-openclash/root/etc/uci-defaults/luci-openclash

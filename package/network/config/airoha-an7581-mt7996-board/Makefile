@@ -32,8 +32,6 @@ define Package/airoha-an7581-mt7996-board/install
 	$(INSTALL_BIN) ./files/etc/hotplug.d/net/99-ppe-reload $(1)/etc/hotplug.d/net/99-ppe-reload
 	$(INSTALL_DIR) $(1)/etc/sysctl.d
 	$(INSTALL_DATA) ./files/etc/sysctl.d/11-wireless-buffers.conf $(1)/etc/sysctl.d/11-wireless-buffers.conf
-	$(INSTALL_DIR) $(1)/etc/uci-defaults
-	$(INSTALL_BIN) ./files/etc/uci-defaults/03_wireless $(1)/etc/uci-defaults/03_wireless
 	$(INSTALL_DIR) $(1)/usr/libexec/platform
 	$(INSTALL_BIN) ./files/usr/libexec/platform/packet-steering.sh $(1)/usr/libexec/platform/packet-steering.sh
 endef

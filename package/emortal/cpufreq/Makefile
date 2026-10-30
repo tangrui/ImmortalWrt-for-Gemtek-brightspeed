@@ -21,6 +21,7 @@ endef
 define Package/cpufreq/install
 	$(INSTALL_DIR) $(1)/etc/config
 	$(INSTALL_CONF) $(CURDIR)/files/cpufreq.config $(1)/etc/config/cpufreq
+	$(if $(filter y,$(CONFIG_TARGET_DEVICE_airoha_an7581_DEVICE_gemtek_xr1710g) $(CONFIG_TARGET_DEVICE_airoha_an7581_DEVICE_gemtek_xr1710g-ubi) $(CONFIG_TARGET_airoha_an7581_DEVICE_gemtek_xr1710g) $(CONFIG_TARGET_airoha_an7581_DEVICE_gemtek_xr1710g-ubi)),$(INSTALL_CONF) $(CURDIR)/files/cpufreq-xr1710g.config $(1)/etc/config/cpufreq)
 	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_BIN) $(CURDIR)/files/cpufreq.init $(1)/etc/init.d/cpufreq
 	$(INSTALL_DIR) $(1)/etc/uci-defaults

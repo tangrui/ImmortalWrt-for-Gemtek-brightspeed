@@ -88,6 +88,7 @@ jobs:
           ./scripts/feeds install -a
           # Unselected menus have recursive Kconfig dependencies in the pinned feeds.
           ./scripts/feeds uninstall luci-app-homeproxy luci-app-ipsec-vpnd luci-app-passwall luci-app-passwall2 squeezelite
+          python3 personal/prepare-feed-defaults.py
           bash scripts/fix-stale-golang-host.sh
 
       - name: Apply feed patches
@@ -138,6 +139,11 @@ jobs:
             tail -150 build.log || true
           fi
 
+      - name: Enable ARM64 test execution
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
       - name: Verify device isolation
         shell: bash
         run: |
@@ -156,6 +162,8 @@ jobs:
             --kernel-config "$kernel_config" \
             --manifest "$manifest"
           python3 personal/verify-image.py bin/targets/airoha/an7581 .config
+          image=$(find bin/targets/airoha/an7581 -name "*-gemtek_xr1710g-squashfs-sysupgrade.itb" -print -quit)
+          sudo python3 personal/test-upgrade.py "$image" | tee upgrade-tests.txt
 
       - name: Check build status
         if: always()
@@ -181,6 +189,7 @@ jobs:
             build.log
             configure.log
             kernel.config
+            upgrade-tests.txt
             build-verbose.log
             bin/targets/airoha/an7581/*.itb
             bin/targets/airoha/an7581/*manifest

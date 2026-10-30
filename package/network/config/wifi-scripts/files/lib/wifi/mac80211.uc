@@ -139,6 +139,17 @@ set ${si}.key='${defaults?.key || ""}'
 set ${si}.disabled='0'
 
 `);
+		// Board defaults only apply to the new radio; existing radios returned above.
+		let radio_defaults = board.wlan.defaults?.radios?.[band_name] ?? {};
+		for (let key in [ "channel", "htmode", "txpower", "disabled", "he_mu_beamformer",
+		                 "he_su_beamformer", "eht_su_beamformer", "eht_mu_beamformer",
+		                 "he_bss_color", "radar_background", "he_twt_responder" ]) {
+			let value = radio_defaults[key];
+			if (value != null && match('' + value, /^[A-Za-z0-9_.-]+$/))
+				print(`set ${s}.${key}='${value}'\n`);
+		}
+		if (radio_defaults.disabled != null && match('' + radio_defaults.disabled, /^[01]$/))
+			print(`set ${si}.disabled='${radio_defaults.disabled}'\n`);
 		config[name] = {};
 		commit = true;
 	}

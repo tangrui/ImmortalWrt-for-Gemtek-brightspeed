@@ -1,3 +1,10 @@
+# Personal patch: preserve configured upgrades — 2026-10-30
+
+- 保留设置升级时尊重已有无线、IPv6、主题、流量卸载、调频、计划任务和 OpenClash 配置。
+- 默认值移至模板与配置生成器；迁移只清理已移除服务的孤立 include，提交成功后记录版本。
+- 明确备份订阅、规则和用户自定义源，排除旧核心和生成的软件源，核心程序随新固件更新。
+- 移除 Watchcat、UPnP、miniupnpd 及相关客户端库，新增实际 ARM64 配置恢复与初始化回归测试。
+
 # Personal patch 20261016-patch — 2026-10-30
 
 - 固化清理后的软件包和 IPv6、全锥形 NAT、主题策略。

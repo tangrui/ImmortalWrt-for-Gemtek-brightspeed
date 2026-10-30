@@ -21,6 +21,47 @@ gemtek,w1700k-ubi)
 	ucidef_set_wireless 2g 'ImmortalWrt-2G' 'psk2' '12345678'
 	ucidef_set_wireless 5g 'ImmortalWrt-5G' 'sae-mixed' '12345678'
 	ucidef_set_wireless 6g 'ImmortalWrt-6G' 'sae' '12345678'
+
+	json_select_object wlan
+	json_select_object defaults
+	json_add_object radios
+	for band in 2g 5g 6g; do
+		json_add_object "$band"
+		case "$band" in
+		2g)
+			json_add_string channel auto
+			json_add_string htmode HE20
+			json_add_string txpower 28
+			json_add_string disabled 0
+			json_add_string he_mu_beamformer 0
+			json_add_string he_su_beamformer 1
+			;;
+		5g|6g)
+			if [ "$band" = 5g ]; then
+				json_add_string channel 36
+				json_add_string htmode EHT160
+				json_add_string disabled 0
+				json_add_string he_bss_color 2
+				json_add_string radar_background 1
+			else
+				json_add_string channel 37
+				json_add_string htmode EHT320
+				json_add_string disabled 1
+				json_add_string he_bss_color 1
+				json_add_string he_twt_responder 1
+			fi
+			json_add_string txpower 30
+			json_add_string he_su_beamformer 1
+			json_add_string he_mu_beamformer 1
+			json_add_string eht_su_beamformer 1
+			json_add_string eht_mu_beamformer 1
+			;;
+		esac
+		json_close_object
+	done
+	json_close_object
+	json_select ..
+	json_select ..
 	;;
 esac
 

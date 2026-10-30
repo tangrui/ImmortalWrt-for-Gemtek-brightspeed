@@ -2,7 +2,7 @@
 
 uci -q get system.@imm_init[0] > "/dev/null" || uci -q add system imm_init > "/dev/null"
 
-if ! uci -q get system.@imm_init[0].system_chn > "/dev/null"; then
+if [ "$(cat /tmp/personal-upgrade/mode 2>/dev/null)" = factory ] && ! uci -q get system.@imm_init[0].system_chn > "/dev/null"; then
 	uci -q batch <<-EOF
 		set system.@system[0].timezone="CST-8"
 		set system.@system[0].zonename="Asia/Shanghai"
@@ -26,7 +26,7 @@ if uci -q get system.@imm_init[0].opkg_mirror > "/dev/null"; then
 fi
 
 apk_mirror="$(uci -q get system.@imm_init[0].apk_mirror)"
-if [ -z "$apk_mirror" ]; then
+if [ "$(cat /tmp/personal-upgrade/mode 2>/dev/null)" = factory ] && [ -z "$apk_mirror" ]; then
 	apk_mirror="https://mirrors.vsean.net/openwrt"
 	uci -q batch <<-EOF
 		set system.@imm_init[0].apk_mirror="$apk_mirror"
@@ -34,6 +34,6 @@ if [ -z "$apk_mirror" ]; then
 	EOF
 fi
 
-sed -i.bak "s,https://downloads.immortalwrt.org,$apk_mirror,g" "/etc/apk/repositories.d/distfeeds.list"
+[ -z "$apk_mirror" ] || sed -i.bak "s,https://downloads.immortalwrt.org,$apk_mirror,g" "/etc/apk/repositories.d/distfeeds.list"
 
 exit 0

@@ -64,12 +64,18 @@ def verify_rootfs(data):
         image.write_bytes(data)
         # Extract inspected files only; a normal CI user cannot create /dev/console.
         subprocess.run(['unsquashfs', '-no-progress', '-processors', '2', '-d', str(root), str(image),
-                        'etc', 'usr/lib/lua/luci/controller/openclash.lua', 'usr/share/ucode/fw4.uc'],
+                        'etc', 'usr/lib/lua/luci/controller/openclash.lua', 'usr/share/ucode/fw4.uc',
+                        'lib/functions/personal-upgrade.sh', 'lib/preinit/80_mount_root',
+                        'lib/preinit/81_personal_config_state', 'bin/config_generate',
+                        'lib/wifi/mac80211.uc', 'lib/upgrade/keep.d/personal-firmware', 'sbin/sysupgrade'],
                        check=True, stdout=subprocess.DEVNULL)
         core = root / 'etc/openclash/core/clash_meta'
         assert hashlib.sha256(core.read_bytes()).hexdigest() == CORE_SHA256, 'Unexpected Mihomo core'
         assert core.stat().st_mode & 0o111, 'Core is not executable'
         assert (root / 'usr/lib/lua/luci/controller/openclash.lua').is_file(), 'OpenClash UI missing'
+        for name in ['watchcat', 'miniupnpd']:
+            assert not (root / 'etc/init.d' / name).exists(), f'Removed service remains: {name}'
+        assert 'PERSONAL_PRESERVE_OPENCLASH' in (root / 'etc/uci-defaults/luci-openclash').read_text()
         defaults = root / 'etc/uci-defaults/99-personal-patch'
         assert defaults.read_bytes() == Path('files/etc/uci-defaults/99-personal-patch').read_bytes()
         assert '(defs.fullcone || defs.fullcone6) && !nft_try_fullcone()' in (root / 'usr/share/ucode/fw4.uc').read_text()
@@ -79,13 +85,30 @@ def verify_rootfs(data):
         autoload = root / 'etc/modules.d/nft-fullcone'
         assert not autoload.exists() or not any(s.strip() == 'nft_fullcone' for s in autoload.read_text().splitlines())
         assert "ucidef_set_country 'CN'" in (root / 'etc/board.d/03_wifi_defaults').read_text()
-        assert "wireless.radio2.disabled='1'" in (root / 'etc/uci-defaults/03_wireless').read_text()
+        for name in ['03_wireless', '11-xr1710g-cpufreq-defaults', '18-xr1710g-firewall-defaults',
+                     '22_airoha-network-migrate-v4', '98-watchcat-defaults']:
+            assert not (root / 'etc/uci-defaults' / name).exists(), f'Preference reset remains: {name}'
+        for source, target in {
+            'package/emortal/default-settings/files/99-default-settings': 'etc/uci-defaults/99-default-settings',
+            'package/emortal/default-settings/files/99-default-settings-chinese': 'etc/uci-defaults/99-default-settings-chinese',
+            'files/lib/functions/personal-upgrade.sh': 'lib/functions/personal-upgrade.sh',
+            'package/base-files/files/lib/preinit/80_mount_root': 'lib/preinit/80_mount_root',
+            'package/base-files/files/lib/preinit/81_personal_config_state': 'lib/preinit/81_personal_config_state',
+            'package/base-files/files/bin/config_generate': 'bin/config_generate',
+            'package/base-files/files/sbin/sysupgrade': 'sbin/sysupgrade',
+            'package/network/config/wifi-scripts/files/lib/wifi/mac80211.uc': 'lib/wifi/mac80211.uc',
+            'files/lib/upgrade/keep.d/personal-firmware': 'lib/upgrade/keep.d/personal-firmware',
+        }.items():
+            assert (root / target).read_bytes() == Path(source).read_bytes(), target
+        assert "'/luci-static/bootstrap-dark'" in (root / 'etc/config/luci').read_text()
+        assert "option governor0 'performance'" in (root / 'etc/config/cpufreq').read_text()
         cron = (root / 'etc/crontabs/root').read_text()
         assert re.search(r'^30 21 \* \* \* ', cron, re.M)
         assert re.search(r'^0 7 \* \* \* ', cron, re.M)
         assert 'patch-' in (root / 'etc/openwrt_release').read_text()
         feeds = (root / 'etc/apk/repositories.d/distfeeds.list').read_text()
         assert 'https://mirrors.vsean.net/openwrt/snapshots' in feeds
+        assert not any('/app_airoha/' in line and not line.startswith('#') for line in feeds.splitlines())
 
 
 def main():

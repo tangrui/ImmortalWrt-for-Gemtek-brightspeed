@@ -33,6 +33,24 @@ compose_rootfs_mount_options() {
 	echo $mount_options
 }
 
+# Record actual restore outcome before config generation; never infer it from a
+# missing marker belonging to a firmware the old installation never had.
+personal_restore_config_archive() {
+	local archive="$1" compression="$2"
+	if [ "$compression" = gzip ]; then
+		tar xzf "$archive" && tar tzf "$archive" >> /tmp/personal-restored-files
+	else
+		tar xf "$archive" && tar tf "$archive" >> /tmp/personal-restored-files
+	fi
+	if [ "$?" = 0 ]; then
+		touch /tmp/personal-config-restored
+	else
+		touch /tmp/personal-config-restore-failed
+		echo "Configuration restore failed: $archive" >&2
+		return 1
+	fi
+}
+
 do_mount_root() {
 	mount_root start "$(compose_rootfs_mount_options)"
 	boot_run_hook preinit_mount_root
@@ -40,8 +58,8 @@ do_mount_root() {
 		echo "- config restore -"
 		cp /etc/passwd /etc/group /etc/shadow /tmp
 		cd /
-		[ -f /sysupgrade.tgz ] && tar xzf /sysupgrade.tgz
-		[ -f /tmp/sysupgrade.tar ] && tar xf /tmp/sysupgrade.tar
+		[ -f /sysupgrade.tgz ] && personal_restore_config_archive /sysupgrade.tgz gzip
+		[ -f /tmp/sysupgrade.tar ] && personal_restore_config_archive /tmp/sysupgrade.tar plain
 		missing_lines /tmp/passwd /etc/passwd >> /etc/passwd
 		missing_lines /tmp/group /etc/group >> /etc/group
 		missing_lines /tmp/shadow /etc/shadow >> /etc/shadow

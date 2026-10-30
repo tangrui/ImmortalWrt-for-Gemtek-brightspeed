@@ -7,6 +7,12 @@ FORCE=
 
 . /usr/share/libubox/jshn.sh
 . /lib/functions/ipv4.sh
+. /lib/functions/system.sh
+
+PERSONAL_XR1710G=0
+case "$(board_name)" in
+  gemtek,xr1710g|gemtek,xr1710g-ubi) PERSONAL_XR1710G=1 ;;
+esac
 
 if [ -n "$FORCE" ] || [ ! -s $CFG ]; then
 	/bin/board_detect $FORCE || exit 1
@@ -193,6 +199,7 @@ generate_network() {
 					set network.${1}6.device='$device'
 					set network.${1}6.proto='dhcpv6'
 				EOF
+				[ "$PERSONAL_XR1710G" = 0 ] || uci set network.${1}6.auto='0'
 			}
 		;;
 
@@ -210,6 +217,7 @@ generate_network() {
 					set network.${1}6.device='@${1}'
 					set network.${1}6.proto='dhcpv6'
 				EOF
+				[ "$PERSONAL_XR1710G" = 0 ] || uci set network.${1}6.auto='0'
 			}
 		;;
 
@@ -578,6 +586,8 @@ if [ ! -s /etc/config/dhcp ]; then
 		[ -e /proc/sys/net/ipv6 ] && V6MODE=server
 		;;
 	esac
+
+	[ "$PERSONAL_XR1710G" = 0 ] || V6MODE=disabled
 
 	uci -q batch <<-EOF
 		set dhcp.lan=dhcp

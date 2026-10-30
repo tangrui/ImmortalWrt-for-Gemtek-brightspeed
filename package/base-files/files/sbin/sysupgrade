@@ -253,6 +253,14 @@ else
 	sysupgrade_init_conffiles="build_list_of_backup_config_files"
 fi
 
+personal_filter_backup_files() {
+	# Bundled executables and generated feed indexes are supplied by the new image.
+	sed -i -e '\,^/etc/openclash/core\(/\|$\),d' \
+		-e '\,^/etc/apk/repositories\.d/distfeeds\.list$,d' "$1"
+}
+append sysupgrade_init_conffiles personal_filter_backup_files
+
+
 find_filter=""
 if [ $SKIP_UNCHANGED = 1 ]; then
 	[ ! -d /rom/ ] && {

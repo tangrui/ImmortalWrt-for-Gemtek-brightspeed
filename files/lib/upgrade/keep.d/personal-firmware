@@ -1,0 +1,5 @@
+/etc/personal-firmware/migrations/
+/etc/config/openclash
+/etc/openclash/
+/etc/crontabs/
+/etc/apk/repositories.d/customfeeds.list

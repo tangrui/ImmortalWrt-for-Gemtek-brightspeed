@@ -4,7 +4,7 @@
 
 uci -q get system.@imm_init[0] > "/dev/null" || uci -q add system imm_init > "/dev/null"
 
-if ! uci -q get system.@imm_init[0].lang > "/dev/null"; then
+if [ "$(cat /tmp/personal-upgrade/mode 2>/dev/null)" = factory ] && ! uci -q get system.@imm_init[0].lang > "/dev/null"; then
 	uci -q batch <<-EOF
 		set luci.main.lang="auto"
 		commit luci
@@ -14,8 +14,10 @@ if ! uci -q get system.@imm_init[0].lang > "/dev/null"; then
 	EOF
 fi
 
+if [ "$(cat /tmp/personal-upgrade/mode 2>/dev/null)" = factory ]; then
 sed -i "/log-facility/d" "/etc/dnsmasq.conf"
 echo "log-facility=/dev/null" >> "/etc/dnsmasq.conf"
+fi
 
 ln -sf "/sbin/ip" "/usr/bin/ip"
 

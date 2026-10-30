@@ -6,7 +6,7 @@
 mkdir -p /etc/crontabs
 
 # Only write if no existing crontab (preserve user modifications)
-if [ ! -s /etc/crontabs/root ]; then
+if [ ! -e /etc/crontabs/root ]; then
 	cat > /etc/crontabs/root << 'EOF'
 # 个人关灯计划：21:30 关闭正面绿灯，07:00 开启
 # 每天 21:30 关灯（仅正面绿色灯）

@@ -7,7 +7,7 @@ removed = set(Path('personal/removed-packages.txt').read_text().split())
 required = {'luci-app-openclash', 'arp-scan', 'arp-scan-database', 'luci-theme-bootstrap',
             'luci-app-airoha-factory', 'luci-app-airoha-fancontrol', 'luci-app-airoha-npu',
             'luci-app-autoreboot', 'luci-app-firewall', 'luci-app-mlo', 'luci-app-netmode',
-            'luci-app-package-manager', 'luci-app-upnp', 'luci-app-watchcat', 'luci-app-wifihistory',
+            'luci-app-package-manager', 'luci-app-wifihistory',
             'ruby', 'ruby-yaml', 'lyaml', 'curl', 'bash', 'jq', 'openssh-client',
             'openssh-keygen', 'openssh-sftp-server', 'iputils-arping', 'wireguard-tools',
             'tcpdump', 'tcping', 'iperf3', 'ip-full', 'i2c-tools', 'pciutils', 'pppoe-discovery'}

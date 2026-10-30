@@ -1,0 +1,7 @@
+# Runs after backup restore and before config_generate/wifi config.
+personal_config_state() {
+	. /lib/functions/personal-upgrade.sh
+	personal_capture_boot_context
+}
+boot_hook_add preinit_main personal_config_state
+boot_hook_add initramfs personal_config_state
