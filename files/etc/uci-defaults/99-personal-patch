@@ -20,6 +20,16 @@ commit dhcp
 commit luci
 commit openclash
 UCI
+for radio in radio0 radio1 radio2; do
+  uci -q get wireless.$radio >/dev/null && uci -q set wireless.$radio.country='CN'
+done
+if uci -q get wireless.radio2 >/dev/null; then
+  uci -q set wireless.radio2.disabled='1'
+fi
+if uci -q get wireless.default_radio2 >/dev/null; then
+  uci -q set wireless.default_radio2.disabled='1'
+fi
+uci -q commit wireless
 # Keep only standard binary feeds. app_airoha is compiled into this image.
 for f in /etc/apk/repositories.d/*.list; do
   [ -f "$f" ] || continue

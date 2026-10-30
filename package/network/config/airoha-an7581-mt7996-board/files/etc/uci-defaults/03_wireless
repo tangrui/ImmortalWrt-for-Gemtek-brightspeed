@@ -46,7 +46,7 @@ gemtek,w1700k-ubi)
 	uci set wireless.radio2.channel='37'
 	uci set wireless.radio2.htmode='EHT320'
 	uci set wireless.radio2.txpower='30'
-	uci set wireless.radio2.disabled='0'
+	uci set wireless.radio2.disabled='1'
 	uci set wireless.radio2.eht_su_beamformer='1'
 	uci set wireless.radio2.eht_mu_beamformer='1'
 	uci set wireless.radio2.he_su_beamformer='1'

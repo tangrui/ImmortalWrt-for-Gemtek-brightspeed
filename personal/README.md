@@ -18,6 +18,9 @@ usteer、mesh-conf、airoha-recovery、IPTV 服务及 xray-core。
 默认关闭 OpenClash，用户导入自己的订阅/配置后开启。
 不包含个人订阅、密码、SSH 密钥或设备备份。
 
+无线国家设为 CN，停用 6GHz，保留 2.4GHz 自动信道 HE20、5GHz 信道 36 EHT160。
+默认 LED 计划为 21:30 关灯、07:00 开灯。
+
 配置：关闭 fullcone/fullcone6 与模块自动加载，修正 firewall4 关闭状态下的探测；
 暂停 WAN6 及 LAN IPv6 通告，保留协议栈；删除旧 ZeroTier 防火墙 include；使用 Bootstrap 深色主题。
 未针对 GPIO 按键模块、无线扫描告警做未经验证的修复。
