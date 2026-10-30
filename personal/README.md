@@ -6,7 +6,7 @@
 
 软件源固定到发布时刻之前的最后提交，具体见 `feeds.conf.default`。
 `app_airoha` 只用于编译硬件管理界面，运行时禁用它的二进制源。
-保留标准软件源；快照二进制源会继续变化，内核模块应使用本次构建产物。
+保留与当前设备相同的 mirrors.vsean.net 标准软件源；快照二进制源会继续变化，内核模块应使用本次构建产物。
 
 `removed-packages.txt` 覆盖已确认卸载项，并排除当前设备清理后清单中已不存在的
 usteer、mesh-conf、airoha-recovery、IPTV 服务及 xray-core。
