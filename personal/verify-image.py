@@ -62,7 +62,9 @@ def verify_rootfs(data):
     with tempfile.TemporaryDirectory(prefix='verify-xr1710g-') as tmp:
         image, root = Path(tmp) / 'root.squashfs', Path(tmp) / 'root'
         image.write_bytes(data)
-        subprocess.run(['unsquashfs', '-no-progress', '-processors', '2', '-d', str(root), str(image)],
+        # Extract inspected files only; a normal CI user cannot create /dev/console.
+        subprocess.run(['unsquashfs', '-no-progress', '-processors', '2', '-d', str(root), str(image),
+                        'etc', 'usr/lib/lua/luci/controller/openclash.lua', 'usr/share/ucode/fw4.uc'],
                        check=True, stdout=subprocess.DEVNULL)
         core = root / 'etc/openclash/core/clash_meta'
         assert hashlib.sha256(core.read_bytes()).hexdigest() == CORE_SHA256, 'Unexpected Mihomo core'

@@ -254,8 +254,10 @@ jobs:
           gh run download "$RUN_ID" --repo "$GITHUB_REPOSITORY" --name gemtek-patch-1710.config-firmware --dir firmware
       - name: Verify actual firmware images
         run: |
+          set -o pipefail
           bash personal/test-find-kernel-config.sh
           python3 personal/verify-image.py firmware | tee verification.txt
+          test "$(grep -c '^IMAGE VERIFIED:' verification.txt)" -eq 2
       - uses: actions/upload-artifact@v7
         with:
           name: firmware-verification
