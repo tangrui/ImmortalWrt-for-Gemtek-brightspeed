@@ -10,7 +10,11 @@
 
 `removed-packages.txt` 覆盖已确认卸载项，并排除当前设备清理后清单中已不存在的
 usteer、mesh-conf、airoha-recovery、IPTV 服务及 xray-core。
+tcping 单独从 fw876/helloworld 提交 `1f0849ec0668e59865c30ab7d89bb2139c270d00`
+引入源码到 `package/personal/tcping`，不启用该 feed；保留现有 PPPoE 发现工具。
 保留无线驱动、Mesh 认证组件、硬件管理、UPnP、Watchcat、定时重启、无线历史和扫描工具。
+修正隐藏板级配置包在多机型构建下变为 m 的默认值，确保其为 y。
+固定 feeds 内存在循环依赖的未选中 HomeProxy、IPsec 服务、Passwall 和 Squeezelite 构建入口已移除。
 构建在 defconfig 和最终 manifest 两阶段检查删除项及必备软件，依赖重新带入会直接失败。
 
 预置 OpenClash `v0.48.002`（提交 `e553e82e01c697aefbe1555261a503f425e00ccd`）
@@ -26,7 +30,7 @@ usteer、mesh-conf、airoha-recovery、IPTV 服务及 xray-core。
 未针对 GPIO 按键模块、无线扫描告警做未经验证的修复。
 内核和全部模块由同一个任务从源码构建，仍须刷机后验证硬件运行状态。
 
-推送 `patch-xr1710g` 自动构建，也可以手动运行 Build Personal Patch Firmware。
+推送 `patch-xr1710g` 自动构建，也可以手动选择 `patch-xr1710g` 分支运行 Build Personal Patch Firmware。
 固件文件名带 `20261016-patch-<commit>`；产物含 manifest、配置、软件源版本和校验和。
 只有手动选择 release/prerelease 才发布 Release。
 

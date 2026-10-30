@@ -81,6 +81,8 @@ jobs:
         run: |
           ./scripts/feeds update -a
           ./scripts/feeds install -a
+          # Unselected menus have recursive Kconfig dependencies in the pinned feeds.
+          ./scripts/feeds uninstall luci-app-homeproxy luci-app-ipsec-vpnd luci-app-passwall luci-app-passwall2 squeezelite
           bash scripts/fix-stale-golang-host.sh
 
       - name: Apply feed patches
@@ -96,7 +98,11 @@ jobs:
           VERSION_NUMBER='${{ steps.version.outputs.version_number }}' \
           VERSION_CODE='${{ steps.version.outputs.version_code }}' \
           bash scripts/set-build-version.sh .config
-          make defconfig
+          set -o pipefail
+          make defconfig 2>&1 | tee configure.log
+          if grep -q "recursive dependency detected" configure.log; then exit 1; fi
+          grep -E "airoha-an7581-mt7996-board|TARGET.*xr1710g" .config
+          grep -A15 -B2 "config PACKAGE_airoha-an7581-mt7996-board" tmp/.config-package.in
           python3 personal/check-packages.py .config
           bash scripts/check-gemtek-profile-isolation.sh --config .config
           grep -E 'CONFIG_(IMAGEOPT|EXTRA_IMAGE_NAME|VERSIONOPT|VERSION_DIST|VERSION_NUMBER|VERSION_CODE|VERSION_FILENAMES|VERSION_CODE_FILENAMES)[= ]' .config
@@ -165,6 +171,7 @@ jobs:
           name: gemtek-patch-${{ inputs.config_seed || '1710.config' }}-firmware
           path: |
             build.log
+            configure.log
             build-verbose.log
             bin/targets/airoha/an7581/*.itb
             bin/targets/airoha/an7581/*manifest
@@ -173,7 +180,10 @@ jobs:
             bin/targets/airoha/an7581/version.buildinfo
             bin/targets/airoha/an7581/sha256sums
             personal/
+            tmp/.config-package.in
+            tmp/.config-target.in
             .config
+          include-hidden-files: true
           retention-days: 30
         if: always()
 
