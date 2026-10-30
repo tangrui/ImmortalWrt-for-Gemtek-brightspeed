@@ -1,3 +1,8 @@
+# Personal XR1710G patch
+
+本分支基于作者 20261016 发布版，构建带 patch 标记的精简固件，预置 OpenClash。
+配置范围、固定版本和后续升级步骤见 [个人定制说明](personal/README.md)。
+
 <img src="https://avatars.githubusercontent.com/u/53193414?s=200&v=4" alt="logo" width="200" height="200" align="right">
 
 # ImmortalWrt-for-Gemtek-brightspeed XR1710G & XG2010G

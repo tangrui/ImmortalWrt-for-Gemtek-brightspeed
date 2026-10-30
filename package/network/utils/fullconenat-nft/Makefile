@@ -33,7 +33,7 @@ define KernelPackage/nft-fullcone
   KCONFIG:= \
     CONFIG_NF_CONNTRACK_EVENTS=y \
     CONFIG_NF_CONNTRACK_CHAIN_EVENTS=y
-  AUTOLOAD:=$(call AutoProbe,nft_fullcone)
+  # Personal policy: keep dependency available without automatic loading.
 endef
 
 define KernelPackage/nft-fullcone/Description

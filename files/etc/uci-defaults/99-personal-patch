@@ -1,0 +1,28 @@
+#!/bin/sh
+# Safe policy only: never embed credentials or an existing router backup.
+uci -q batch <<'UCI'
+set firewall.@defaults[0].fullcone='0'
+set firewall.@defaults[0].fullcone6='0'
+delete firewall.zerotier_input
+delete firewall.zerotier_srcnat
+delete firewall.zerotier_forward
+set network.wan6.auto='0'
+set dhcp.lan.ra='disabled'
+set dhcp.lan.dhcpv6='disabled'
+set dhcp.lan.ndp='disabled'
+set luci.main.mediaurlbase='/luci-static/bootstrap-dark'
+delete luci.themes.Argon
+delete luci.themes.Glass
+set openclash.config.enable='0'
+commit firewall
+commit network
+commit dhcp
+commit luci
+commit openclash
+UCI
+# Keep only standard binary feeds. app_airoha is compiled into this image.
+for f in /etc/apk/repositories.d/*.list; do
+  [ -f "$f" ] || continue
+  sed -i -E '\|/(app_airoha|easytier|glass|helloworld|luci_app_bandix|onu_config|openwrt_bandix|pon_drivers|pushbot)/|s|^([^#])|# personal-patch disabled: \1|' "$f"
+done
+exit 0

@@ -1,3 +1,9 @@
+# Personal patch 20261016-patch — 2026-10-30
+
+- 固化清理后的软件包和 IPv6、全锥形 NAT、主题策略。
+- 预置固定稳定版本 OpenClash 与 Mihomo ARM64 核心。
+- 固定软件源，新增自动构建和软件包清单校验，固件添加 patch 标记。
+
 # 更新日志
 
 本文件记录 Gemtek Brightspeed 固件仓库的重要功能、稳定性和维护变更。常规的

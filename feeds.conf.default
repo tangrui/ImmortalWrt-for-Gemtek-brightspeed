@@ -1,17 +1,6 @@
-src-git packages https://github.com/immortalwrt/packages.git
-src-git luci https://github.com/immortalwrt/luci.git
-#src-git --directory=luci-theme-glass glass https://github.com/rchen14b/luci-theme-glass.git;main
-src-git routing https://github.com/openwrt/routing.git
-src-git telephony https://github.com/openwrt/telephony.git
-#src-git video https://github.com/openwrt/video.git
-src-git app_airoha https://github.com/naoki66/luci-app-airoha.git
-src-git pon_drivers https://github.com/naoki66/openwrt-pon-drivers.git
-src-git onu_config https://github.com/naoki66/OpenWrt_ONU_CONFIG.git
-#src-git targets https://github.com/openwrt/targets.git
-#src-git oldpackages http://git.openwrt.org/packages.git
-#src-link custom /usr/src/openwrt/custom-feed
-src-git easytier https://github.com/EasyTier/luci-app-easytier.git;main
-src-git openwrt_bandix https://github.com/timsaya/openwrt-bandix.git;main
-src-git luci_app_bandix https://github.com/timsaya/luci-app-bandix.git;main
-src-git helloworld https://github.com/fw876/helloworld.git;dev
-src-git --directory=luci-app-pushbot pushbot https://github.com/naoki66/luci-app-pushbot.git
+# Frozen to release date 2026-10-16; app_airoha is build-only.
+src-git packages https://github.com/immortalwrt/packages.git^ce63ec33f519f2030ecbe2e7f7424d933a9ee849
+src-git luci https://github.com/immortalwrt/luci.git^17f97c0bec190e18d4884ab8204f63c64981edd7
+src-git routing https://github.com/openwrt/routing.git^4b9891b9136259f93294a424507ed24c5e8c1cbd
+src-git telephony https://github.com/openwrt/telephony.git^5d68d53c160a325ea9d03fce393e051573bcc736
+src-git app_airoha https://github.com/naoki66/luci-app-airoha.git^323539cf229bce52754fbb318135c9c56c514d2f
