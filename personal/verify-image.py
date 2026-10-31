@@ -117,9 +117,11 @@ def verify_rootfs(data):
         menu = (root / 'usr/share/luci/menu.d/luci-app-tailscale-community.json').read_text()
         assert 'admin/vpn/tailscale' in menu
         assert (root / 'usr/lib/lua/luci/i18n/tailscale-community.zh-cn.lmo').is_file()
-        for path in ['etc/init.d/tailscale-settings', 'usr/share/rpcd/ucode/tailscale.uc',
-                     'www/luci-static/resources/view/tailscale.js']:
+        for path in ['etc/init.d/tailscale-settings', 'usr/share/rpcd/ucode/tailscale.uc']:
             assert 'personal-tailscale-preservation-v1' in (root / path).read_text(), path
+        # LuCI minifies JS and strips comments. Exercise the installed view instead.
+        subprocess.run(['node', 'personal/test-tailscale-view.cjs',
+                        str(root / 'www/luci-static/resources/view/tailscale.js')], check=True)
         assert not list((root / 'etc/tailscale').glob('*.state')), 'Tailscale identity embedded in firmware'
         core = root / 'etc/openclash/core/clash_meta'
         assert hashlib.sha256(core.read_bytes()).hexdigest() == CORE_SHA256, 'Unexpected Mihomo core'

@@ -259,6 +259,10 @@ jobs:
       - uses: actions/checkout@v6
       - name: Install image inspection tool
         run: sudo apt-get update -qq && sudo apt-get install -y squashfs-tools
+      - name: Enable ARM64 test execution
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
       - name: Download existing build
         env:
           GH_TOKEN: ${{ github.token }}
@@ -272,7 +276,14 @@ jobs:
           bash personal/test-find-kernel-config.sh
           python3 personal/verify-image.py firmware | tee verification.txt
           test "$(grep -c '^IMAGE VERIFIED:' verification.txt)" -eq 2
+          image=$(find firmware -name "*-gemtek_xr1710g-squashfs-sysupgrade.itb" -print -quit)
+          test -n "$image"
+          sudo python3 personal/test-upgrade.py "$image" | tee upgrade-tests.txt
+          sudo python3 personal/test-tailscale-luci.py "$image" | tee tailscale-luci-tests.txt
       - uses: actions/upload-artifact@v7
         with:
           name: firmware-verification
-          path: verification.txt
+          path: |
+            verification.txt
+            upgrade-tests.txt
+            tailscale-luci-tests.txt
