@@ -10,6 +10,7 @@ required = {'luci-app-openclash', 'arp-scan', 'arp-scan-database', 'luci-theme-b
             'luci-app-package-manager', 'luci-app-wifihistory',
             'ruby', 'ruby-yaml', 'lyaml', 'curl', 'bash', 'jq', 'openssh-client',
             'openssh-keygen', 'openssh-sftp-server', 'iputils-arping', 'tailscale', 'kmod-tun',
+            'luci-app-tailscale-community', 'luci-i18n-tailscale-community-zh-cn',
             'tcpdump', 'tcping', 'iperf3', 'ip-full', 'i2c-tools', 'pciutils', 'pppoe-discovery'}
 if p.name.endswith('.config') or p.name == '.config':
     packages = {s.removeprefix('CONFIG_PACKAGE_').removesuffix('=y')

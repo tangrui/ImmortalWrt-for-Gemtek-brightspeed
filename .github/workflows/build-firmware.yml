@@ -1,4 +1,4 @@
-name: Build Personal Patch Firmware
+name: Build Custom Firmware
 
 on:
   push:
@@ -54,7 +54,7 @@ jobs:
           upstream_commit=$(git rev-parse --short=8 "$upstream_base")
           build_id="${build_date}-${repo_commit}-${upstream_commit}"
           # 文件名只保留 “日期-本机commit”，完整 build_id 落到 VERSION_CODE
-          version_number="20261016-patch-${repo_commit}"
+          version_number="20261016-custom-${repo_commit}"
           version_code="${build_id}"
 
           echo "date=$build_date" >> $GITHUB_OUTPUT
@@ -89,6 +89,8 @@ jobs:
           # Unselected menus have recursive Kconfig dependencies in the pinned feeds.
           ./scripts/feeds uninstall luci-app-homeproxy luci-app-ipsec-vpnd luci-app-passwall luci-app-passwall2 squeezelite
           python3 personal/prepare-feed-defaults.py
+          python3 personal/patch-tailscale-luci.py feeds/luci/applications/luci-app-tailscale-community
+          node personal/test-tailscale-view.cjs feeds/luci/applications/luci-app-tailscale-community/htdocs/luci-static/resources/view/tailscale.js
           bash scripts/fix-stale-golang-host.sh
 
       - name: Apply feed patches
@@ -164,6 +166,7 @@ jobs:
           python3 personal/verify-image.py bin/targets/airoha/an7581 .config | tee image-verification.txt
           image=$(find bin/targets/airoha/an7581 -name "*-gemtek_xr1710g-squashfs-sysupgrade.itb" -print -quit)
           sudo python3 personal/test-upgrade.py "$image" | tee upgrade-tests.txt
+          sudo python3 personal/test-tailscale-luci.py "$image" | tee tailscale-luci-tests.txt
 
       - name: Check build status
         if: always()
@@ -184,13 +187,14 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: gemtek-patch-${{ inputs.config_seed || '1710.config' }}-firmware
+          name: gemtek-custom-${{ inputs.config_seed || '1710.config' }}-firmware
           path: |
             build.log
             configure.log
             kernel.config
             upgrade-tests.txt
             image-verification.txt
+            tailscale-luci-tests.txt
             build-verbose.log
             bin/targets/airoha/an7581/*.itb
             bin/targets/airoha/an7581/*manifest
@@ -231,8 +235,8 @@ jobs:
         if: github.event_name == 'workflow_dispatch' && inputs.release_type != 'none'
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: ${{ format('{0}-patch-{1}', steps.version.outputs.date, steps.version.outputs.repo_commit) }}
-          name: ${{ format('{0} - Gemtek {1} Build ({2})', steps.version.outputs.date, steps.version.outputs.device_model, steps.version.outputs.repo_commit) }}
+          tag_name: ${{ format('{0}-custom-{1}', steps.version.outputs.date, steps.version.outputs.repo_commit) }}
+          name: ${{ format('{0} - Gemtek {1} Custom Build ({2})', steps.version.outputs.date, steps.version.outputs.device_model, steps.version.outputs.repo_commit) }}
           body: ${{ steps.release_body.outputs.body }}
           draft: false
           prerelease: ${{ github.event.inputs.release_type == 'prerelease' }}
@@ -261,7 +265,7 @@ jobs:
           RUN_ID: ${{ inputs.verify_run_id }}
         run: |
           [[ "$RUN_ID" =~ ^[0-9]+$ ]]
-          gh run download "$RUN_ID" --repo "$GITHUB_REPOSITORY" --name gemtek-patch-1710.config-firmware --dir firmware
+          gh run download "$RUN_ID" --repo "$GITHUB_REPOSITORY" --name gemtek-custom-1710.config-firmware --dir firmware
       - name: Verify actual firmware images
         run: |
           set -o pipefail

@@ -103,7 +103,9 @@ def verify_rootfs(data):
                         'lib/functions/personal-upgrade.sh', 'lib/preinit/80_mount_root',
                         'lib/preinit/81_personal_config_state', 'bin/config_generate',
                         'lib/wifi/mac80211.uc', 'lib/upgrade/keep.d/personal-firmware', 'sbin/sysupgrade',
-                        'lib/modules', 'usr/sbin/tailscale', 'usr/sbin/tailscaled'],
+                        'lib/modules', 'usr/sbin/tailscale', 'usr/sbin/tailscaled',
+                        'usr/share/rpcd', 'usr/share/luci', 'www/luci-static/resources/view/tailscale.js',
+                        'usr/lib/lua/luci/i18n/tailscale-community.zh-cn.lmo'],
                        check=True, stdout=subprocess.DEVNULL)
         verify_button_module(root)
         assert (root / 'usr/sbin/tailscaled').is_file(), 'Tailscale daemon missing'
@@ -111,6 +113,13 @@ def verify_rootfs(data):
         tsconf = (root / 'etc/config/tailscale').read_text()
         assert '/etc/tailscale/tailscaled.state' in tsconf
         assert 'nftables' in tsconf
+        assert 'service_enabled' not in tsconf, 'Do not take ownership before explicit GUI save'
+        menu = (root / 'usr/share/luci/menu.d/luci-app-tailscale-community.json').read_text()
+        assert 'admin/vpn/tailscale' in menu
+        assert (root / 'usr/lib/lua/luci/i18n/tailscale-community.zh-cn.lmo').is_file()
+        for path in ['etc/init.d/tailscale-settings', 'usr/share/rpcd/ucode/tailscale.uc',
+                     'www/luci-static/resources/view/tailscale.js']:
+            assert 'personal-tailscale-preservation-v1' in (root / path).read_text(), path
         assert not list((root / 'etc/tailscale').glob('*.state')), 'Tailscale identity embedded in firmware'
         core = root / 'etc/openclash/core/clash_meta'
         assert hashlib.sha256(core.read_bytes()).hexdigest() == CORE_SHA256, 'Unexpected Mihomo core'
@@ -148,7 +157,7 @@ def verify_rootfs(data):
         cron = (root / 'etc/crontabs/root').read_text()
         assert re.search(r'^30 21 \* \* \* ', cron, re.M)
         assert re.search(r'^0 7 \* \* \* ', cron, re.M)
-        assert 'patch-' in (root / 'etc/openwrt_release').read_text()
+        assert re.search(r"DISTRIB_RELEASE='20261016-custom-[0-9a-f]{8}'", (root / 'etc/openwrt_release').read_text())
         feeds = (root / 'etc/apk/repositories.d/distfeeds.list').read_text()
         assert 'https://mirrors.vsean.net/openwrt/snapshots' in feeds
         assert not any('/app_airoha/' in line and not line.startswith('#') for line in feeds.splitlines())
